@@ -1,0 +1,48 @@
+name: Validate Code
+on:
+  push:
+    branches:
+      - '*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  code-validation:
+    name: Code validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup Cargo
+        uses: ./.github/actions/setup-cargo
+      - name: Validate code
+        run: |
+          cargo check --quiet
+      - name: Validate linters
+        run: |
+          ./configs/scripts/cargo-fmt.sh
+          cargo clippy --all-features --all-targets --quiet
+      - name: Validate unit tests
+        run: |
+          cargo test
+# TODO Split unit and e2e tests
+#  build:
+#    name: Build target
+#    needs: code-validation
+#    runs-on: ${{ matrix.os }}
+#    strategy:
+#      matrix:
+#        os: [ ubuntu-latest, windows-latest, macos-latest ]
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#      - name: Setup Cargo
+#        uses: ./.github/actions/setup-cargo
+#      - name: Build target
+#        run: |
+#          cargo build --release
+#      - name: Validate tests
+#        run: |
+#          cargo test
