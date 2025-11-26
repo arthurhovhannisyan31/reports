@@ -1,11 +1,13 @@
+pub mod errors;
+pub mod parsers;
+
+use crate::errors::{ParsingError, SerializeError};
 use std::fmt::{Display, Formatter};
-use std::io::{Read, Write};
+use std::io;
+use std::io::{BufRead, ErrorKind, Write};
 use std::str::FromStr;
 
-pub mod bin_format;
-pub mod csv_format;
-pub mod errors;
-pub mod txt_format;
+pub static RECORD_LINES_NUMBER: usize = 8;
 
 // TODO Delete clone
 #[derive(Debug, Default, Clone)]
@@ -60,14 +62,6 @@ pub mod record_field {
   pub const DESCRIPTION: &str = "DESCRIPTION";
 }
 
-pub enum ParsingErrors {
-  NotFound,
-}
-
-pub enum WriteErrors {
-  NotFound,
-}
-
 impl FromStr for TxType {
   type Err = String; // TODO Replace with proper type
 
@@ -92,7 +86,7 @@ impl Display for TxType {
 }
 
 impl TryFrom<u8> for TxType {
-  type Error = (); // TODO Conversion error
+  type Error = (); // TODO Add enum error for TxType
 
   fn try_from(v: u8) -> Result<Self, Self::Error> {
     match v {
@@ -105,14 +99,17 @@ impl TryFrom<u8> for TxType {
 }
 
 impl FromStr for Status {
-  type Err = String; // TODO Replace with proper type
+  type Err = io::Error;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     match s {
       status::SUCCESS => Ok(Status::Success),
       status::FAILURE => Ok(Status::Failure),
       status::PENDING => Ok(Status::Pending),
-      _ => Err(format!("Unknown type: {}", s)),
+      err => Err(io::Error::new(
+        ErrorKind::InvalidData,
+        format!("Failed parsing status from {s}: {err}"),
+      )),
     }
   }
 }
@@ -128,7 +125,7 @@ impl Display for Status {
 }
 
 impl TryFrom<u8> for Status {
-  type Error = (); // TODO Conversion error
+  type Error = (); // TODO Add enum error for Status
 
   fn try_from(v: u8) -> Result<Self, Self::Error> {
     match v {
@@ -144,19 +141,13 @@ impl BankRecord {
   pub fn new() -> Self {
     Self::default()
   }
+}
 
-  // From JSON
-  pub fn from_read<R: Read>(_r: &mut R) -> Result<Self, ParsingErrors> {
-    // just read until no data left, return record structures on read
-    todo!()
-  }
-
-  // To JSON
-  pub fn write_to<W: Write>(
+pub trait BankRecordParser {
+  fn from_read<R: BufRead>(_r: &mut R)
+  -> Result<Vec<BankRecord>, ParsingError>;
+  fn write_to<W: Write>(
     &mut self,
     _writer: &mut W,
-  ) -> Result<(), WriteErrors> {
-    todo!()
-    // pass self to writer
-  }
+  ) -> Result<(), SerializeError>;
 }
