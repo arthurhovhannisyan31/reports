@@ -1,4 +1,4 @@
-use crate::constants::{record_field, RECORD_LINES_NUMBER};
+use crate::constants::{RECORD_LINES_NUMBER, record_field};
 use crate::errors::{ParsingError, SerializeError};
 use crate::record::{BankRecord, BankRecordParser, Status, TxType};
 use std::io;
