@@ -5,7 +5,6 @@ use std::io;
 use std::io::{BufRead, ErrorKind, Write};
 use std::str::FromStr;
 
-pub struct TxtReportParser;
 pub struct TxtRecord(pub BankRecord);
 
 impl BankRecordSerDe for TxtRecord {
@@ -44,14 +43,6 @@ impl BankRecordSerDe for TxtRecord {
 
       record_lines_count += 1;
 
-      // record line limit overflow
-      if record_lines_count > RECORD_LINES_NUMBER {
-        return Err(ParsingError::IO(io::Error::new(
-          ErrorKind::UnexpectedEof,
-          format!("Bank record has more than {RECORD_LINES_NUMBER} lines"),
-        )));
-      }
-
       let parts = line.split(':');
       let mut parts_iter = parts.into_iter();
 
@@ -82,7 +73,7 @@ impl BankRecordSerDe for TxtRecord {
           bank_record.to_user_id = field_value.parse::<u64>()?;
         }
         record_field::AMOUNT => {
-          bank_record.amount = field_value.parse::<i64>()?;
+          bank_record.amount = field_value.parse::<u64>()?;
         }
         record_field::TIMESTAMP => {
           bank_record.timestamp = field_value.parse::<u64>()?;
@@ -149,33 +140,111 @@ impl BankRecordSerDe for TxtRecord {
   }
 }
 
-// #[cfg(test)]
-// mod txt_parser_test {
-//   // TODO Use cursor
-//
+#[cfg(test)]
+mod txt_parser_test {
+  use crate::parsers::txt::TxtRecord;
+  use crate::record::{BankRecord, BankRecordSerDe, Status, TxType};
+  use std::io::{Cursor, Write};
+  use std::str::FromStr;
 
-//   #[test]
-//   fn test_valid_input() {
-//     todo!()
-//   }
-//
-//   #[test]
-//   fn test_missing_record_middle_line() {
-//     todo!()
-//   }
-//
-//   #[test]
-//   fn test_missing_file_last_line() {
-//     todo!()
-//   }
-//
-//   #[test]
-//   fn test_extra_record_line() {
-//     todo!()
-//   }
-//
-//   #[test]
-//   fn test_extra_empty_line() {
-//     todo!()
-//   }
-// }
+  #[test]
+  fn test_parse_valid_input() {
+    let mut buff = Cursor::new(String::from(
+      "# Record 1 (DEPOSIT)\nTX_ID: 1000000000000000\nTX_TYPE: DEPOSIT\nFROM_USER_ID: 0\nTO_USER_ID: 9223372036854775807\nAMOUNT: 100\nTIMESTAMP: 1633036860000\nSTATUS: FAILURE\nDESCRIPTION: \"Record number 1\"",
+    ));
+
+    let rec_result = TxtRecord::from_read(&mut buff);
+    assert!(rec_result.is_ok());
+
+    let rec = rec_result.unwrap();
+    assert_eq!(rec.tx_id, 1000000000000000u64);
+    assert_eq!(rec.tx_type, TxType::from_str("DEPOSIT").unwrap());
+    assert_eq!(rec.from_user_id, 0u64);
+    assert_eq!(rec.to_user_id, 9223372036854775807u64);
+    assert_eq!(rec.amount, 100);
+    assert_eq!(rec.timestamp, 1633036860000u64);
+    assert_eq!(rec.status, Status::from_str("FAILURE").unwrap());
+    // No need to escape quotes, serialization writes string quoted
+    assert_eq!(rec.description, String::from("Record number 1"));
+  }
+
+  #[test]
+  fn test_parse_leading_empty_lines() {
+    let mut buff = Cursor::new(String::from(
+      "\n\n# Record 1 (DEPOSIT)\n\nTX_ID: 1000000000000000\nTX_TYPE: DEPOSIT\nFROM_USER_ID: 0\nTO_USER_ID: 9223372036854775807\nAMOUNT: 100\nTIMESTAMP: 1633036860000\nSTATUS: FAILURE\nDESCRIPTION: \"Record number 1\"",
+    ));
+
+    let rec_result = TxtRecord::from_read(&mut buff);
+    assert!(rec_result.is_ok());
+
+    let rec = rec_result.unwrap();
+    assert_eq!(rec.tx_id, 1000000000000000u64);
+    assert_eq!(rec.tx_type, TxType::from_str("DEPOSIT").unwrap());
+    assert_eq!(rec.from_user_id, 0u64);
+    assert_eq!(rec.to_user_id, 9223372036854775807u64);
+    assert_eq!(rec.amount, 100);
+    assert_eq!(rec.timestamp, 1633036860000u64);
+    assert_eq!(rec.status, Status::from_str("FAILURE").unwrap());
+    // No need to escape quotes, serialization writes string quoted
+    assert_eq!(rec.description, String::from("Record number 1"));
+  }
+
+  #[test]
+  fn test_parse_trailing_empty_lines() {
+    let mut buff = Cursor::new(String::from(
+      "# Record 1 (DEPOSIT)\nTX_ID: 1000000000000000\nTX_TYPE: DEPOSIT\nFROM_USER_ID: 0\nTO_USER_ID: 9223372036854775807\nAMOUNT: 100\nTIMESTAMP: 1633036860000\nSTATUS: FAILURE\nDESCRIPTION: \"Record number 1\"\n\n\n",
+    ));
+
+    let rec_result = TxtRecord::from_read(&mut buff);
+    assert!(rec_result.is_ok());
+
+    let rec = rec_result.unwrap();
+    assert_eq!(rec.tx_id, 1000000000000000u64);
+    assert_eq!(rec.tx_type, TxType::from_str("DEPOSIT").unwrap());
+    assert_eq!(rec.from_user_id, 0u64);
+    assert_eq!(rec.to_user_id, 9223372036854775807u64);
+    assert_eq!(rec.amount, 100);
+    assert_eq!(rec.timestamp, 1633036860000u64);
+    assert_eq!(rec.status, Status::from_str("FAILURE").unwrap());
+    // No need to escape quotes, serialization writes string quoted
+    assert_eq!(rec.description, String::from("Record number 1"));
+  }
+
+  #[test]
+  fn test_parse_missing_description() {
+    let mut buff = Cursor::new(String::from(
+      "# Record 1 (DEPOSIT)\nTX_ID: 1000000000000000\nTX_TYPE: DEPOSIT\nFROM_USER_ID: 0\nTO_USER_ID: 9223372036854775807\nAMOUNT: 100\nTIMESTAMP: 1633036860000\nSTATUS: FAILURE",
+    ));
+    let rec_result = TxtRecord::from_read(&mut buff);
+
+    assert!(rec_result.is_err());
+  }
+
+  #[test]
+  fn test_serialize_record() {
+    let vec: Vec<u8> = vec![];
+    let mut buffer = Cursor::new(vec);
+
+    let record = BankRecord {
+      tx_id: 1000000000000000,
+      tx_type: TxType::Deposit,
+      from_user_id: 0,
+      to_user_id: 9223372036854775807,
+      amount: 100,
+      timestamp: 1633036860000,
+      status: Status::Failure,
+      // No need to escape quotes, serialization writes string quoted
+      description: String::from("Record number 1"),
+    };
+
+    let _ = TxtRecord(record).write_to(&mut buffer);
+    buffer.flush().unwrap();
+
+    // Pay attention that new line is doubled to break the line and make empty one
+    let assert_result = String::from(
+      "# Record 1 (DEPOSIT)\nTX_ID: 1000000000000000\nTX_TYPE: DEPOSIT\nFROM_USER_ID: 0\nTO_USER_ID: 9223372036854775807\nAMOUNT: 100\nTIMESTAMP: 1633036860000\nSTATUS: FAILURE\nDESCRIPTION: \"Record number 1\"\n\n",
+    );
+
+    assert_eq!(buffer.into_inner(), assert_result.as_bytes());
+  }
+}
