@@ -7,7 +7,7 @@ updates:
       interval: "weekly"
 
   - package-ecosystem: cargo
-    target-branch: "main"
+    target-branch: "develop"
     pull-request-branch-name:
       separator: "-"
     directory: "/"
