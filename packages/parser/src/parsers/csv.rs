@@ -1,6 +1,6 @@
-use crate::constants::{RECORD_LINES_NUMBER, record_field};
+use crate::constants::{record_field, RECORD_LINES_NUMBER};
 use crate::errors::{ParsingError, SerializeError};
-use crate::record::{BankRecord, BankRecordSerDe, Status, TxType};
+use crate::record::{BankRecord, BankRecordParser, Status, TxType};
 use std::io;
 use std::io::{BufRead, ErrorKind, Write};
 use std::str::FromStr;
@@ -10,7 +10,7 @@ pub struct CsvRecord(pub BankRecord);
 pub const CVS_HEADERS: &str =
   "TX_ID,TX_TYPE,FROM_USER_ID,TO_USER_ID,AMOUNT,TIMESTAMP,STATUS,DESCRIPTION";
 
-impl BankRecordSerDe for CsvRecord {
+impl BankRecordParser for CsvRecord {
   fn from_read<R: BufRead>(buffer: &mut R) -> Result<BankRecord, ParsingError> {
     let mut lines = buffer.lines();
     let mut bank_record = BankRecord::new();
@@ -90,7 +90,7 @@ impl BankRecordSerDe for CsvRecord {
 #[cfg(test)]
 mod csv_parser_test {
   use crate::parsers::csv::CsvRecord;
-  use crate::record::{BankRecord, BankRecordSerDe, Status, TxType};
+  use crate::record::{BankRecord, BankRecordParser, Status, TxType};
   use std::io::{Cursor, Write};
   use std::str::FromStr;
 

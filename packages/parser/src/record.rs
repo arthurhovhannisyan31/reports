@@ -41,7 +41,7 @@ impl BankRecord {
   }
 }
 
-pub trait BankRecordSerDe {
+pub trait BankRecordParser {
   fn from_read<R: BufRead>(buffer: &mut R) -> Result<BankRecord, ParsingError>;
   fn write_to<W: Write>(
     &mut self,
