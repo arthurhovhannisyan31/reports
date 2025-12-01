@@ -1,13 +1,13 @@
 use crate::constants::{RECORD_LINES_NUMBER, record_field};
 use crate::errors::{ParsingError, SerializeError};
-use crate::record::{BankRecord, BankRecordSerDe, Status, TxType};
+use crate::record::{BankRecord, BankRecordParser, Status, TxType};
 use std::io;
 use std::io::{BufRead, ErrorKind, Write};
 use std::str::FromStr;
 
 pub struct TxtRecord(pub BankRecord);
 
-impl BankRecordSerDe for TxtRecord {
+impl BankRecordParser for TxtRecord {
   fn from_read<R: BufRead>(buffer: &mut R) -> Result<BankRecord, ParsingError> {
     let mut bank_record = BankRecord::new();
     let mut record_lines_count: usize = 0;
@@ -143,7 +143,7 @@ impl BankRecordSerDe for TxtRecord {
 #[cfg(test)]
 mod txt_parser_test {
   use crate::parsers::txt::TxtRecord;
-  use crate::record::{BankRecord, BankRecordSerDe, Status, TxType};
+  use crate::record::{BankRecord, BankRecordParser, Status, TxType};
   use std::io::{Cursor, Write};
   use std::str::FromStr;
 

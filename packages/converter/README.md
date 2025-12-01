@@ -1,5 +1,5 @@
 <div align="center">
-  <h1><code>reports</code></h1><sub>Built with 🦀</sub>
+  <h1><code>converter</code></h1><sub>Built with 🦀</sub>
 </div>
 
 ## Credits

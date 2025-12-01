@@ -1,0 +1,18 @@
+[package]
+name = "parser"
+version = "1.0.1"
+edition = "2024"
+
+[dependencies]
+
+[[bin]]
+name = "binary"
+path = "bin/bin_parser.rs"
+
+[[bin]]
+name = "txt"
+path = "bin/txt_parser.rs"
+
+[[bin]]
+name = "csv"
+path = "bin/csv_parser.rs"

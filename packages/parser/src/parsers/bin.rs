@@ -1,5 +1,5 @@
 use crate::errors::{ParsingError, SerializeError};
-use crate::record::{BankRecord, BankRecordSerDe, Status, TxType};
+use crate::record::{BankRecord, BankRecordParser, Status, TxType};
 use std::cmp::min;
 use std::io;
 use std::io::{BufRead, IoSlice, IoSliceMut, Write};
@@ -8,7 +8,7 @@ pub struct BinRecord(pub BankRecord);
 
 static RECORD_HEADER: &[u8; 4] = b"YPBN";
 
-impl BankRecordSerDe for BinRecord {
+impl BankRecordParser for BinRecord {
   fn from_read<R: BufRead>(buffer: &mut R) -> Result<BankRecord, ParsingError> {
     let mut record_header_buf = [0u8; 4];
 
@@ -20,6 +20,10 @@ impl BankRecordSerDe for BinRecord {
       if record_header_buf == *RECORD_HEADER {
         break;
       }
+      // Reading bytes failing here, need to save consumed bytes
+      // Move one with 2 pointers and buffer
+      // Push byte, check if it starts with 89
+      // if so check every next byte and reset vec to 0 if not match expeted result and move on checking for 89
 
       // RECORD_HEADER is lost, moving on with 1 byte step
       let mut step = [0u8; 1];
@@ -122,7 +126,7 @@ impl BankRecordSerDe for BinRecord {
 #[cfg(test)]
 mod bin_parser_test {
   use crate::parsers::bin::{BinRecord, RECORD_HEADER};
-  use crate::record::{BankRecord, BankRecordSerDe, Status, TxType};
+  use crate::record::{BankRecord, BankRecordParser, Status, TxType};
   use std::io::{Cursor, Write};
 
   #[test]

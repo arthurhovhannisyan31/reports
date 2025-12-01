@@ -1,6 +1,6 @@
-use report_parser::errors::ParsingError;
-use report_parser::parsers::txt::TxtRecord;
-use report_parser::record::BankRecordSerDe;
+use parser::errors::ParsingError;
+use parser::parsers::TxtRecord;
+use parser::record::BankRecordParser;
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Write};
 

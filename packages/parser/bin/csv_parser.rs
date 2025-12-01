@@ -1,6 +1,6 @@
-use report_parser::errors::ParsingError;
-use report_parser::parsers::csv::{CVS_HEADERS, CsvRecord};
-use report_parser::record::BankRecordSerDe;
+use parser::errors::ParsingError;
+use parser::parsers::csv::{CVS_HEADERS, CsvRecord};
+use parser::record::BankRecordParser;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 
