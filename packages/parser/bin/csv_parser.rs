@@ -1,5 +1,5 @@
 use parser::errors::ParsingError;
-use parser::parsers::csv::{CsvRecord, CVS_HEADERS};
+use parser::parsers::csv::{CVS_HEADERS, CsvRecord};
 use parser::record::BankRecordParser;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
