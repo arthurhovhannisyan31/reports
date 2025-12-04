@@ -103,6 +103,7 @@ impl BankRecordParser for BinRecord {
       description_len + 2
     };
     let description_len_buf = (adjusted_description_len as u32).to_be_bytes();
+    let description_buf = self.0.description.as_bytes();
 
     let bufs = [
       IoSlice::new(&tx_id_buf),
@@ -116,7 +117,7 @@ impl BankRecordParser for BinRecord {
     ];
 
     let record_size: u32 = (bufs.iter().map(|slice| slice.len()).sum::<usize>()
-      + self.0.description.len()) as u32;
+      + description_buf.len()) as u32;
 
     // Write record header
     buffer.write_all(RECORD_HEADER)?;
@@ -134,7 +135,7 @@ impl BankRecordParser for BinRecord {
     if description_len > 0 {
       // Write escaped quotes to record model
       write!(buffer, "\"")?;
-      buffer.write_all(self.0.description.as_bytes())?;
+      buffer.write_all(description_buf)?;
       write!(buffer, "\"")?;
     }
 
