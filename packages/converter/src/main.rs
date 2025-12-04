@@ -161,7 +161,7 @@ TO_USER_ID: 9223372036854775807
 
     let record1_desc = String::from("Record number 1");
     assert_data.extend_from_slice(bin::RECORD_HEADER);
-    assert_data.extend_from_slice(&61u32.to_be_bytes()[..]);
+    assert_data.extend_from_slice(&63u32.to_be_bytes()[..]);
     assert_data.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);
     assert_data.extend_from_slice(&(TxType::Deposit as u8).to_be_bytes()[..]);
     assert_data.extend_from_slice(&0u64.to_be_bytes()[..]);
@@ -177,7 +177,7 @@ TO_USER_ID: 9223372036854775807
 
     let record2_desc = String::from("Record number 2");
     assert_data.extend_from_slice(bin::RECORD_HEADER);
-    assert_data.extend_from_slice(&61u32.to_be_bytes()[..]);
+    assert_data.extend_from_slice(&63u32.to_be_bytes()[..]);
     assert_data.extend_from_slice(&1000000000000001u64.to_be_bytes()[..]);
     assert_data.extend_from_slice(&(TxType::Transfer as u8).to_be_bytes()[..]);
     assert_data.extend_from_slice(&9223372036854775807u64.to_be_bytes()[..]);
@@ -313,7 +313,7 @@ TO_USER_ID: 9223372036854775807
 
     let record1_desc = String::from("Record number 1");
     assert_data.extend_from_slice(bin::RECORD_HEADER);
-    assert_data.extend_from_slice(&61u32.to_be_bytes()[..]);
+    assert_data.extend_from_slice(&63u32.to_be_bytes()[..]);
     assert_data.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);
     assert_data.extend_from_slice(&(TxType::Deposit as u8).to_be_bytes()[..]);
     assert_data.extend_from_slice(&0u64.to_be_bytes()[..]);
@@ -329,7 +329,7 @@ TO_USER_ID: 9223372036854775807
 
     let record2_desc = String::from("Record number 2");
     assert_data.extend_from_slice(bin::RECORD_HEADER);
-    assert_data.extend_from_slice(&61u32.to_be_bytes()[..]);
+    assert_data.extend_from_slice(&63u32.to_be_bytes()[..]);
     assert_data.extend_from_slice(&1000000000000001u64.to_be_bytes()[..]);
     assert_data.extend_from_slice(&(TxType::Transfer as u8).to_be_bytes()[..]);
     assert_data.extend_from_slice(&9223372036854775807u64.to_be_bytes()[..]);

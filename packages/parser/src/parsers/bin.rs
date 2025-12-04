@@ -104,6 +104,12 @@ impl BankRecordParser for BinRecord {
     };
     let description_len_buf = (adjusted_description_len as u32).to_be_bytes();
     let description_buf = self.0.description.as_bytes();
+    let description_buf_len = description_buf.len();
+    let adjusted_description_buf_len = if description_buf_len == 0 {
+      0
+    } else {
+      description_buf_len + 2
+    };
 
     let bufs = [
       IoSlice::new(&tx_id_buf),
@@ -117,7 +123,7 @@ impl BankRecordParser for BinRecord {
     ];
 
     let record_size: u32 = (bufs.iter().map(|slice| slice.len()).sum::<usize>()
-      + description_buf.len()) as u32;
+      + adjusted_description_buf_len) as u32;
 
     // Write record header
     buffer.write_all(RECORD_HEADER)?;
@@ -321,7 +327,7 @@ mod bin_parser_test {
     let description = String::from("Record number 1");
 
     assert_buffer.extend_from_slice(RECORD_HEADER);
-    assert_buffer.extend_from_slice(&61u32.to_be_bytes()[..]);
+    assert_buffer.extend_from_slice(&63u32.to_be_bytes()[..]);
     assert_buffer.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);
     assert_buffer.extend_from_slice(&(TxType::Deposit as u8).to_be_bytes()[..]);
     assert_buffer.extend_from_slice(&0u64.to_be_bytes()[..]);
