@@ -1,4 +1,4 @@
-use crate::errors::ConverterErrors;
+use crate::errors::ComparerError;
 use clap::{Parser, ValueEnum};
 use std::ffi::OsStr;
 use std::io;
@@ -18,23 +18,26 @@ pub(crate) const EXTENSION_WHITELIST: &[&str] = &["bin", "csv", "txt"];
 #[derive(Debug, Parser)]
 #[command(version, about, next_line_help = true)]
 pub struct CliArgs {
-  #[arg(short = 'i', long, value_name = "File path", value_parser = path_validation)]
-  pub input: PathBuf,
+  #[arg(long, value_name = "File path", value_parser = path_validation)]
+  pub file1: PathBuf,
   #[arg(long, value_enum, value_name = "File Format")]
-  pub input_format: DataFormat,
+  pub format1: DataFormat,
+  #[arg(long, value_name = "File path", value_parser = path_validation)]
+  pub file2: PathBuf,
   #[arg(long, value_enum, value_name = "File Format")]
-  pub output_format: DataFormat,
+  pub format2: DataFormat,
 }
 
-pub fn path_validation(path: &str) -> Result<PathBuf, ConverterErrors> {
-  let path =
-    PathBuf::from_str(path).expect("Failed reading provided path value");
+pub fn path_validation(path: &str) -> Result<PathBuf, ComparerError> {
+  let path = PathBuf::from_str(path).map_err(|_| {
+    ComparerError::IO(io::Error::new(
+      ErrorKind::NotFound,
+      format!("Failed reading provided file path: {path}"),
+    ))
+  })?;
 
   if !path.exists() {
-    return Err(ConverterErrors::IO(io::Error::new(
-      ErrorKind::NotFound,
-      format!("Failed reading provided file path: {path:?}"),
-    )));
+    return Err(ComparerError::NotFound);
   }
 
   if let Some(extension) = path.extension().and_then(OsStr::to_str) {
@@ -43,5 +46,5 @@ pub fn path_validation(path: &str) -> Result<PathBuf, ConverterErrors> {
     }
   }
 
-  Err(ConverterErrors::InvalidSourceFile)
+  Err(ComparerError::InvalidSourceFile)
 }

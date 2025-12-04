@@ -2,5 +2,8 @@
 name = "comparer"
 version = "0.1.0"
 edition = "2024"
+description = "Report files comparer"
 
 [dependencies]
+clap = { version = "4.5.53", features = ["derive"] }
+parser = { path = "../parser" }

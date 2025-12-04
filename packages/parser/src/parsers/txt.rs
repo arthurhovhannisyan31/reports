@@ -150,7 +150,15 @@ mod txt_parser_test {
   #[test]
   fn test_parse_valid_input() {
     let mut buff = Cursor::new(String::from(
-      "# Record 1 (DEPOSIT)\nTX_ID: 1000000000000000\nTX_TYPE: DEPOSIT\nFROM_USER_ID: 0\nTO_USER_ID: 9223372036854775807\nAMOUNT: 100\nTIMESTAMP: 1633036860000\nSTATUS: FAILURE\nDESCRIPTION: \"Record number 1\"",
+      "# Record 1 (DEPOSIT)
+TX_ID: 1000000000000000
+TX_TYPE: DEPOSIT
+FROM_USER_ID: 0
+TO_USER_ID: 9223372036854775807
+AMOUNT: 100
+TIMESTAMP: 1633036860000
+STATUS: FAILURE
+DESCRIPTION: \"Record number 1\"",
     ));
 
     let rec_result = TxtRecord::from_read(&mut buff);
@@ -171,7 +179,18 @@ mod txt_parser_test {
   #[test]
   fn test_parse_leading_empty_lines() {
     let mut buff = Cursor::new(String::from(
-      "\n\n# Record 1 (DEPOSIT)\n\nTX_ID: 1000000000000000\nTX_TYPE: DEPOSIT\nFROM_USER_ID: 0\nTO_USER_ID: 9223372036854775807\nAMOUNT: 100\nTIMESTAMP: 1633036860000\nSTATUS: FAILURE\nDESCRIPTION: \"Record number 1\"",
+      "
+
+# Record 1 (DEPOSIT)
+
+TX_ID: 1000000000000000
+TX_TYPE: DEPOSIT
+FROM_USER_ID: 0
+TO_USER_ID: 9223372036854775807
+AMOUNT: 100
+TIMESTAMP: 1633036860000
+STATUS: FAILURE
+DESCRIPTION: \"Record number 1\"",
     ));
 
     let rec_result = TxtRecord::from_read(&mut buff);
@@ -192,7 +211,18 @@ mod txt_parser_test {
   #[test]
   fn test_parse_trailing_empty_lines() {
     let mut buff = Cursor::new(String::from(
-      "# Record 1 (DEPOSIT)\nTX_ID: 1000000000000000\nTX_TYPE: DEPOSIT\nFROM_USER_ID: 0\nTO_USER_ID: 9223372036854775807\nAMOUNT: 100\nTIMESTAMP: 1633036860000\nSTATUS: FAILURE\nDESCRIPTION: \"Record number 1\"\n\n\n",
+      "# Record 1 (DEPOSIT)
+TX_ID: 1000000000000000
+TX_TYPE: DEPOSIT
+FROM_USER_ID: 0
+TO_USER_ID: 9223372036854775807
+AMOUNT: 100
+TIMESTAMP: 1633036860000
+STATUS: FAILURE
+DESCRIPTION: \"Record number 1\"
+
+      
+",
     ));
 
     let rec_result = TxtRecord::from_read(&mut buff);
@@ -213,7 +243,14 @@ mod txt_parser_test {
   #[test]
   fn test_parse_missing_description() {
     let mut buff = Cursor::new(String::from(
-      "# Record 1 (DEPOSIT)\nTX_ID: 1000000000000000\nTX_TYPE: DEPOSIT\nFROM_USER_ID: 0\nTO_USER_ID: 9223372036854775807\nAMOUNT: 100\nTIMESTAMP: 1633036860000\nSTATUS: FAILURE",
+      "# Record 1 (DEPOSIT)
+TX_ID: 1000000000000000
+TX_TYPE: DEPOSIT
+FROM_USER_ID: 0
+TO_USER_ID: 9223372036854775807
+AMOUNT: 100
+TIMESTAMP: 1633036860000
+STATUS: FAILURE",
     ));
     let rec_result = TxtRecord::from_read(&mut buff);
 
@@ -242,7 +279,17 @@ mod txt_parser_test {
 
     // Pay attention that new line is doubled to break the line and make empty one
     let assert_result = String::from(
-      "# Record 1 (DEPOSIT)\nTX_ID: 1000000000000000\nTX_TYPE: DEPOSIT\nFROM_USER_ID: 0\nTO_USER_ID: 9223372036854775807\nAMOUNT: 100\nTIMESTAMP: 1633036860000\nSTATUS: FAILURE\nDESCRIPTION: \"Record number 1\"\n\n",
+      "# Record 1 (DEPOSIT)
+TX_ID: 1000000000000000
+TX_TYPE: DEPOSIT
+FROM_USER_ID: 0
+TO_USER_ID: 9223372036854775807
+AMOUNT: 100
+TIMESTAMP: 1633036860000
+STATUS: FAILURE
+DESCRIPTION: \"Record number 1\"
+
+",
     );
 
     assert_eq!(buffer.into_inner(), assert_result.as_bytes());

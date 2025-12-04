@@ -7,7 +7,7 @@ use std::io;
 use std::io::{BufRead, ErrorKind, Write};
 use std::str::FromStr;
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, PartialEq, Eq, Hash)]
 pub struct BankRecord {
   pub tx_id: u64,
   pub tx_type: TxType,
@@ -19,7 +19,7 @@ pub struct BankRecord {
   pub description: String,
 }
 
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub enum TxType {
   #[default]
   Deposit = 0,
@@ -27,7 +27,7 @@ pub enum TxType {
   Withdrawal = 2,
 }
 
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub enum Status {
   #[default]
   Success = 0,

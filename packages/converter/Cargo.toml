@@ -2,7 +2,7 @@
 name = "converter"
 version = "1.0.0"
 edition = "2024"
-description = "Report files converter tool."
+description = "Report files converter"
 
 [dependencies]
 clap = { version = "4.5.53", features = ["derive"] }
