@@ -140,7 +140,6 @@ impl From<io::Error> for SerializeError {
   }
 }
 
-// TODO extract to derive
 impl Display for StatusTypeError {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
     match self {

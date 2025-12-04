@@ -6,7 +6,7 @@ use std::io::{BufRead, IoSlice, IoSliceMut, Write};
 
 pub struct BinRecord(pub BankRecord);
 
-pub static RECORD_HEADER: &[u8; 4] = b"YPBN";
+pub static BIN_RECORD_HEADER: &[u8; 4] = b"YPBN";
 
 impl BankRecordParser for BinRecord {
   fn from_read<R: BufRead>(buffer: &mut R) -> Result<BankRecord, ParsingError> {
@@ -17,11 +17,11 @@ impl BankRecordParser for BinRecord {
       .map_err(ParsingError::IO)?;
 
     loop {
-      if record_header_buf == *RECORD_HEADER {
+      if record_header_buf == *BIN_RECORD_HEADER {
         break;
       }
 
-      // RECORD_HEADER is lost, scan 4 bytes window with 1 byte step
+      // BIN_RECORD_HEADER is lost, scan 4 bytes window with 1 byte step
       // Move buffer cursor forward by 1 byte
       let mut step = [0u8; 1];
       buffer.read_exact(&mut step)?;
@@ -126,7 +126,7 @@ impl BankRecordParser for BinRecord {
       + adjusted_description_buf_len) as u32;
 
     // Write record header
-    buffer.write_all(RECORD_HEADER)?;
+    buffer.write_all(BIN_RECORD_HEADER)?;
     buffer.write_all(&record_size.to_be_bytes())?;
 
     // Write record body
@@ -151,7 +151,7 @@ impl BankRecordParser for BinRecord {
 
 #[cfg(test)]
 mod bin_parser_test {
-  use crate::parsers::bin::{BinRecord, RECORD_HEADER};
+  use crate::parsers::bin::{BIN_RECORD_HEADER, BinRecord};
   use crate::record::{BankRecord, BankRecordParser, Status, TxType};
   use std::io::{Cursor, Write};
 
@@ -161,7 +161,7 @@ mod bin_parser_test {
     // String quotes need to be escaped, values are written as is
     let description = String::from("Record number 1");
 
-    buff.extend_from_slice(RECORD_HEADER);
+    buff.extend_from_slice(BIN_RECORD_HEADER);
     buff.extend_from_slice(&63u32.to_be_bytes()[..]);
     buff.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);
     buff.extend_from_slice(&(TxType::Deposit as u8).to_be_bytes()[..]);
@@ -198,7 +198,7 @@ mod bin_parser_test {
     let mut buff: Vec<u8> = vec![];
     let description = String::from("");
 
-    buff.extend_from_slice(RECORD_HEADER);
+    buff.extend_from_slice(BIN_RECORD_HEADER);
     buff.extend_from_slice(&63u32.to_be_bytes()[..]);
     buff.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);
     buff.extend_from_slice(&(TxType::Deposit as u8).to_be_bytes()[..]);
@@ -233,7 +233,7 @@ mod bin_parser_test {
     let description = String::from("Record number 1");
 
     buff.extend_from_slice("\"Hello Kitty\"".as_bytes());
-    buff.extend_from_slice(RECORD_HEADER);
+    buff.extend_from_slice(BIN_RECORD_HEADER);
     buff.extend_from_slice(&63u32.to_be_bytes()[..]);
     buff.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);
     buff.extend_from_slice(&(TxType::Deposit as u8).to_be_bytes()[..]);
@@ -292,7 +292,7 @@ mod bin_parser_test {
     // String quotes need to be escaped, values are written as is
     let description = String::from("Record number 1");
 
-    buff.extend_from_slice(RECORD_HEADER);
+    buff.extend_from_slice(BIN_RECORD_HEADER);
     buff.extend_from_slice(&63u32.to_be_bytes()[..]);
     buff.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);
     buff.extend_from_slice(&(TxType::Deposit as u8).to_be_bytes()[..]);
@@ -326,7 +326,7 @@ mod bin_parser_test {
     let mut assert_buffer: Vec<u8> = vec![];
     let description = String::from("Record number 1");
 
-    assert_buffer.extend_from_slice(RECORD_HEADER);
+    assert_buffer.extend_from_slice(BIN_RECORD_HEADER);
     assert_buffer.extend_from_slice(&63u32.to_be_bytes()[..]);
     assert_buffer.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);
     assert_buffer.extend_from_slice(&(TxType::Deposit as u8).to_be_bytes()[..]);
@@ -365,7 +365,7 @@ mod bin_parser_test {
   fn test_serialize_missing_description() {
     let mut assert_buffer: Vec<u8> = vec![];
 
-    assert_buffer.extend_from_slice(RECORD_HEADER);
+    assert_buffer.extend_from_slice(BIN_RECORD_HEADER);
     // Content size does not include description field at all
     assert_buffer.extend_from_slice(&46u32.to_be_bytes()[..]);
     assert_buffer.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);

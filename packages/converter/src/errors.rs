@@ -4,7 +4,7 @@ use std::fmt::{Display, Formatter};
 use std::io;
 
 #[derive(Debug)]
-pub enum ConverterErrors {
+pub(crate) enum ConverterErrors {
   IO(io::Error),
   InvalidSourceFile,
 }

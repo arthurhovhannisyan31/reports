@@ -1,6 +1,6 @@
 use clap::Parser;
 use parser::errors::{ParsingError, SerializeError};
-use parser::parsers::{BinRecord, CsvRecord, TxtRecord, csv::CVS_HEADERS};
+use parser::parsers::{BinRecord, CVS_RECORD_HEADER, CsvRecord, TxtRecord};
 use parser::record::{BankRecord, BankRecordParser};
 use std::fs::File;
 use std::io;
@@ -55,7 +55,7 @@ fn convert(
 
   if output_format == DataFormat::Csv {
     // Write headers line
-    writeln!(writer, "{}", CVS_HEADERS)?;
+    writeln!(writer, "{}", CVS_RECORD_HEADER)?;
   }
 
   for record in parsed_records {
@@ -94,7 +94,7 @@ fn write_record_to_source(
 mod test_converter {
   use crate::configs::DataFormat;
   use crate::convert;
-  use parser::parsers::bin;
+  use parser::parsers::BIN_RECORD_HEADER;
   use parser::record::{Status, TxType};
   use std::io::Cursor;
 
@@ -160,7 +160,7 @@ TO_USER_ID: 9223372036854775807
     let mut assert_data: Vec<u8> = vec![];
 
     let record1_desc = String::from("Record number 1");
-    assert_data.extend_from_slice(bin::RECORD_HEADER);
+    assert_data.extend_from_slice(BIN_RECORD_HEADER);
     assert_data.extend_from_slice(&63u32.to_be_bytes()[..]);
     assert_data.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);
     assert_data.extend_from_slice(&(TxType::Deposit as u8).to_be_bytes()[..]);
@@ -176,7 +176,7 @@ TO_USER_ID: 9223372036854775807
     assert_data.extend_from_slice("\"".as_bytes());
 
     let record2_desc = String::from("Record number 2");
-    assert_data.extend_from_slice(bin::RECORD_HEADER);
+    assert_data.extend_from_slice(BIN_RECORD_HEADER);
     assert_data.extend_from_slice(&63u32.to_be_bytes()[..]);
     assert_data.extend_from_slice(&1000000000000001u64.to_be_bytes()[..]);
     assert_data.extend_from_slice(&(TxType::Transfer as u8).to_be_bytes()[..]);
@@ -210,7 +210,7 @@ TO_USER_ID: 9223372036854775807
     let mut input_data: Vec<u8> = vec![];
 
     let record1_desc = String::from("Record number 1");
-    input_data.extend_from_slice(bin::RECORD_HEADER);
+    input_data.extend_from_slice(BIN_RECORD_HEADER);
     input_data.extend_from_slice(&63u32.to_be_bytes()[..]);
     input_data.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);
     input_data.extend_from_slice(&(TxType::Deposit as u8).to_be_bytes()[..]);
@@ -226,7 +226,7 @@ TO_USER_ID: 9223372036854775807
     input_data.extend_from_slice("\"".as_bytes());
 
     let record2_desc = String::from("Record number 2");
-    input_data.extend_from_slice(bin::RECORD_HEADER);
+    input_data.extend_from_slice(BIN_RECORD_HEADER);
     input_data.extend_from_slice(&63u32.to_be_bytes()[..]);
     input_data.extend_from_slice(&1000000000000001u64.to_be_bytes()[..]);
     input_data.extend_from_slice(&(TxType::Transfer as u8).to_be_bytes()[..]);
@@ -312,7 +312,7 @@ TO_USER_ID: 9223372036854775807
     let mut assert_data: Vec<u8> = vec![];
 
     let record1_desc = String::from("Record number 1");
-    assert_data.extend_from_slice(bin::RECORD_HEADER);
+    assert_data.extend_from_slice(BIN_RECORD_HEADER);
     assert_data.extend_from_slice(&63u32.to_be_bytes()[..]);
     assert_data.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);
     assert_data.extend_from_slice(&(TxType::Deposit as u8).to_be_bytes()[..]);
@@ -328,7 +328,7 @@ TO_USER_ID: 9223372036854775807
     assert_data.extend_from_slice("\"".as_bytes());
 
     let record2_desc = String::from("Record number 2");
-    assert_data.extend_from_slice(bin::RECORD_HEADER);
+    assert_data.extend_from_slice(BIN_RECORD_HEADER);
     assert_data.extend_from_slice(&63u32.to_be_bytes()[..]);
     assert_data.extend_from_slice(&1000000000000001u64.to_be_bytes()[..]);
     assert_data.extend_from_slice(&(TxType::Transfer as u8).to_be_bytes()[..]);
@@ -363,7 +363,7 @@ TO_USER_ID: 9223372036854775807
     let mut input_data: Vec<u8> = vec![];
 
     let record1_desc = String::from("Record number 1");
-    input_data.extend_from_slice(bin::RECORD_HEADER);
+    input_data.extend_from_slice(BIN_RECORD_HEADER);
     input_data.extend_from_slice(&63u32.to_be_bytes()[..]);
     input_data.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);
     input_data.extend_from_slice(&(TxType::Deposit as u8).to_be_bytes()[..]);
@@ -379,7 +379,7 @@ TO_USER_ID: 9223372036854775807
     input_data.extend_from_slice("\"".as_bytes());
 
     let record2_desc = String::from("Record number 2");
-    input_data.extend_from_slice(bin::RECORD_HEADER);
+    input_data.extend_from_slice(BIN_RECORD_HEADER);
     input_data.extend_from_slice(&63u32.to_be_bytes()[..]);
     input_data.extend_from_slice(&1000000000000001u64.to_be_bytes()[..]);
     input_data.extend_from_slice(&(TxType::Transfer as u8).to_be_bytes()[..]);
