@@ -16,17 +16,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-# TODO Replace with setup-cargo action
-      - name: Restore cargo cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
+      - name: Setup Cargo
+        uses: ./.github/actions/setup-cargo
       - name: Setup stable Rust version
         run: |
           rustup toolchain install stable --profile minimal

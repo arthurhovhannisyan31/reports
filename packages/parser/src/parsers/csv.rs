@@ -7,7 +7,7 @@ use std::str::FromStr;
 
 pub struct CsvRecord(pub BankRecord);
 
-pub const CVS_HEADERS: &str =
+pub const CVS_RECORD_HEADER: &str =
   "TX_ID,TX_TYPE,FROM_USER_ID,TO_USER_ID,AMOUNT,TIMESTAMP,STATUS,DESCRIPTION";
 
 impl BankRecordParser for CsvRecord {
@@ -20,7 +20,7 @@ impl BankRecordParser for CsvRecord {
     })?;
     let line = line?;
 
-    let column_names: Vec<&str> = CVS_HEADERS.split(',').collect();
+    let column_names: Vec<&str> = CVS_RECORD_HEADER.split(',').collect();
     let values: Vec<&str> = line.split(',').collect();
 
     let zip_iter = column_names.iter().zip(values);

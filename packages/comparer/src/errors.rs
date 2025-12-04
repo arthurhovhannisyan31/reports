@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 use std::io;
 
 #[derive(Debug)]
-pub enum ComparerError {
+pub(crate) enum ComparerError {
   IO(io::Error),
   InvalidSourceFile,
   NotFound,

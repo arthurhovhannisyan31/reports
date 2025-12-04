@@ -1,6 +1,6 @@
 use clap::Parser;
 use parser::errors::{ParsingError, SerializeError};
-use parser::parsers::{BinRecord, CsvRecord, TxtRecord, csv::CVS_HEADERS};
+use parser::parsers::{BinRecord, CVS_RECORD_HEADER, CsvRecord, TxtRecord};
 use parser::record::{BankRecord, BankRecordParser};
 use std::fs::File;
 use std::io;
@@ -55,7 +55,7 @@ fn convert(
 
   if output_format == DataFormat::Csv {
     // Write headers line
-    writeln!(writer, "{}", CVS_HEADERS)?;
+    writeln!(writer, "{}", CVS_RECORD_HEADER)?;
   }
 
   for record in parsed_records {
@@ -91,13 +91,12 @@ fn write_record_to_source(
 }
 
 #[cfg(test)]
-mod converter_test {
+mod test_converter {
   use crate::configs::DataFormat;
   use crate::convert;
-  use parser::parsers::bin;
+  use parser::parsers::BIN_RECORD_HEADER;
   use parser::record::{Status, TxType};
   use std::io::Cursor;
-  // TODO Tests matrix, from all to all with assert logic
 
   #[test]
   fn test_convert_txt_to_csv() {
@@ -161,8 +160,8 @@ TO_USER_ID: 9223372036854775807
     let mut assert_data: Vec<u8> = vec![];
 
     let record1_desc = String::from("Record number 1");
-    assert_data.extend_from_slice(bin::RECORD_HEADER);
-    assert_data.extend_from_slice(&61u32.to_be_bytes()[..]);
+    assert_data.extend_from_slice(BIN_RECORD_HEADER);
+    assert_data.extend_from_slice(&63u32.to_be_bytes()[..]);
     assert_data.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);
     assert_data.extend_from_slice(&(TxType::Deposit as u8).to_be_bytes()[..]);
     assert_data.extend_from_slice(&0u64.to_be_bytes()[..]);
@@ -177,8 +176,8 @@ TO_USER_ID: 9223372036854775807
     assert_data.extend_from_slice("\"".as_bytes());
 
     let record2_desc = String::from("Record number 2");
-    assert_data.extend_from_slice(bin::RECORD_HEADER);
-    assert_data.extend_from_slice(&61u32.to_be_bytes()[..]);
+    assert_data.extend_from_slice(BIN_RECORD_HEADER);
+    assert_data.extend_from_slice(&63u32.to_be_bytes()[..]);
     assert_data.extend_from_slice(&1000000000000001u64.to_be_bytes()[..]);
     assert_data.extend_from_slice(&(TxType::Transfer as u8).to_be_bytes()[..]);
     assert_data.extend_from_slice(&9223372036854775807u64.to_be_bytes()[..]);
@@ -211,7 +210,7 @@ TO_USER_ID: 9223372036854775807
     let mut input_data: Vec<u8> = vec![];
 
     let record1_desc = String::from("Record number 1");
-    input_data.extend_from_slice(bin::RECORD_HEADER);
+    input_data.extend_from_slice(BIN_RECORD_HEADER);
     input_data.extend_from_slice(&63u32.to_be_bytes()[..]);
     input_data.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);
     input_data.extend_from_slice(&(TxType::Deposit as u8).to_be_bytes()[..]);
@@ -227,7 +226,7 @@ TO_USER_ID: 9223372036854775807
     input_data.extend_from_slice("\"".as_bytes());
 
     let record2_desc = String::from("Record number 2");
-    input_data.extend_from_slice(bin::RECORD_HEADER);
+    input_data.extend_from_slice(BIN_RECORD_HEADER);
     input_data.extend_from_slice(&63u32.to_be_bytes()[..]);
     input_data.extend_from_slice(&1000000000000001u64.to_be_bytes()[..]);
     input_data.extend_from_slice(&(TxType::Transfer as u8).to_be_bytes()[..]);
@@ -270,6 +269,190 @@ DESCRIPTION: \"Record number 2\"
     );
 
     let input_format = DataFormat::Bin;
+    let output_format = DataFormat::Txt;
+
+    let result = convert(
+      &mut input_buffer,
+      &mut output_buffer,
+      input_format,
+      output_format,
+    );
+
+    assert!(result.is_ok());
+    assert_eq!(output_buffer, assert_data.as_bytes());
+  }
+
+  #[test]
+  fn test_convert_txt_to_bin() {
+    let source_data = String::from(
+      "# Record 1 (DEPOSIT)
+TX_TYPE: DEPOSIT
+TO_USER_ID: 9223372036854775807
+FROM_USER_ID: 0
+TIMESTAMP: 1633036860000
+DESCRIPTION: \"Record number 1\"
+TX_ID: 1000000000000000
+AMOUNT: 100
+STATUS: FAILURE
+
+# Record 2 (TRANSFER)
+DESCRIPTION: \"Record number 2\"
+TIMESTAMP: 1633036920000
+STATUS: PENDING
+AMOUNT: 200
+TX_ID: 1000000000000001
+TX_TYPE: TRANSFER
+FROM_USER_ID: 9223372036854775807
+TO_USER_ID: 9223372036854775807
+
+",
+    );
+    let mut input_buffer = Cursor::new(source_data);
+
+    let mut assert_data: Vec<u8> = vec![];
+
+    let record1_desc = String::from("Record number 1");
+    assert_data.extend_from_slice(BIN_RECORD_HEADER);
+    assert_data.extend_from_slice(&63u32.to_be_bytes()[..]);
+    assert_data.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);
+    assert_data.extend_from_slice(&(TxType::Deposit as u8).to_be_bytes()[..]);
+    assert_data.extend_from_slice(&0u64.to_be_bytes()[..]);
+    assert_data.extend_from_slice(&9223372036854775807u64.to_be_bytes()[..]);
+    assert_data.extend_from_slice(&100u64.to_be_bytes()[..]);
+    assert_data.extend_from_slice(&1633036860000u64.to_be_bytes()[..]);
+    assert_data.extend_from_slice(&(Status::Failure as u8).to_be_bytes()[..]);
+    assert_data
+      .extend_from_slice(&((record1_desc.len() + 2) as u32).to_be_bytes()[..]);
+    assert_data.extend_from_slice("\"".as_bytes());
+    assert_data.extend_from_slice(record1_desc.as_bytes());
+    assert_data.extend_from_slice("\"".as_bytes());
+
+    let record2_desc = String::from("Record number 2");
+    assert_data.extend_from_slice(BIN_RECORD_HEADER);
+    assert_data.extend_from_slice(&63u32.to_be_bytes()[..]);
+    assert_data.extend_from_slice(&1000000000000001u64.to_be_bytes()[..]);
+    assert_data.extend_from_slice(&(TxType::Transfer as u8).to_be_bytes()[..]);
+    assert_data.extend_from_slice(&9223372036854775807u64.to_be_bytes()[..]);
+    assert_data.extend_from_slice(&9223372036854775807u64.to_be_bytes()[..]);
+    assert_data.extend_from_slice(&200u64.to_be_bytes()[..]);
+    assert_data.extend_from_slice(&1633036920000u64.to_be_bytes()[..]);
+    assert_data.extend_from_slice(&(Status::Pending as u8).to_be_bytes()[..]);
+    assert_data
+      .extend_from_slice(&((record2_desc.len() + 2) as u32).to_be_bytes()[..]);
+    assert_data.extend_from_slice("\"".as_bytes());
+    assert_data.extend_from_slice(record2_desc.as_bytes());
+    assert_data.extend_from_slice("\"".as_bytes());
+
+    let mut output_buffer: Vec<u8> = vec![];
+    let input_format = DataFormat::Txt;
+    let output_format = DataFormat::Bin;
+
+    let result = convert(
+      &mut input_buffer,
+      &mut output_buffer,
+      input_format,
+      output_format,
+    );
+
+    assert!(result.is_ok());
+    assert_eq!(output_buffer, assert_data);
+  }
+
+  #[test]
+  fn test_convert_bin_to_csv() {
+    let mut input_data: Vec<u8> = vec![];
+
+    let record1_desc = String::from("Record number 1");
+    input_data.extend_from_slice(BIN_RECORD_HEADER);
+    input_data.extend_from_slice(&63u32.to_be_bytes()[..]);
+    input_data.extend_from_slice(&1000000000000000u64.to_be_bytes()[..]);
+    input_data.extend_from_slice(&(TxType::Deposit as u8).to_be_bytes()[..]);
+    input_data.extend_from_slice(&0u64.to_be_bytes()[..]);
+    input_data.extend_from_slice(&9223372036854775807u64.to_be_bytes()[..]);
+    input_data.extend_from_slice(&100u64.to_be_bytes()[..]);
+    input_data.extend_from_slice(&1633036860000u64.to_be_bytes()[..]);
+    input_data.extend_from_slice(&(Status::Failure as u8).to_be_bytes()[..]);
+    input_data
+      .extend_from_slice(&((record1_desc.len() + 2) as u32).to_be_bytes()[..]);
+    input_data.extend_from_slice("\"".as_bytes());
+    input_data.extend_from_slice(record1_desc.as_bytes());
+    input_data.extend_from_slice("\"".as_bytes());
+
+    let record2_desc = String::from("Record number 2");
+    input_data.extend_from_slice(BIN_RECORD_HEADER);
+    input_data.extend_from_slice(&63u32.to_be_bytes()[..]);
+    input_data.extend_from_slice(&1000000000000001u64.to_be_bytes()[..]);
+    input_data.extend_from_slice(&(TxType::Transfer as u8).to_be_bytes()[..]);
+    input_data.extend_from_slice(&9223372036854775807u64.to_be_bytes()[..]);
+    input_data.extend_from_slice(&9223372036854775807u64.to_be_bytes()[..]);
+    input_data.extend_from_slice(&200u64.to_be_bytes()[..]);
+    input_data.extend_from_slice(&1633036920000u64.to_be_bytes()[..]);
+    input_data.extend_from_slice(&(Status::Pending as u8).to_be_bytes()[..]);
+    input_data
+      .extend_from_slice(&((record2_desc.len() + 2) as u32).to_be_bytes()[..]);
+    input_data.extend_from_slice("\"".as_bytes());
+    input_data.extend_from_slice(record2_desc.as_bytes());
+    input_data.extend_from_slice("\"".as_bytes());
+
+    let mut input_buffer = Cursor::new(input_data);
+
+    let assert_data = String::from(
+      "TX_ID,TX_TYPE,FROM_USER_ID,TO_USER_ID,AMOUNT,TIMESTAMP,STATUS,DESCRIPTION
+1000000000000000,DEPOSIT,0,9223372036854775807,100,1633036860000,FAILURE,\"Record number 1\"
+1000000000000001,TRANSFER,9223372036854775807,9223372036854775807,200,1633036920000,PENDING,\"Record number 2\"
+"
+    );
+
+    let mut output_buffer: Vec<u8> = vec![];
+    let input_format = DataFormat::Bin;
+    let output_format = DataFormat::Csv;
+
+    let result = convert(
+      &mut input_buffer,
+      &mut output_buffer,
+      input_format,
+      output_format,
+    );
+
+    assert!(result.is_ok());
+    assert_eq!(output_buffer, assert_data.as_bytes());
+  }
+
+  #[test]
+  fn test_convert_csv_to_txt() {
+    let source_data = String::from(
+      "TX_ID,TX_TYPE,FROM_USER_ID,TO_USER_ID,AMOUNT,TIMESTAMP,STATUS,DESCRIPTION
+1000000000000000,DEPOSIT,0,9223372036854775807,100,1633036860000,FAILURE,\"Record number 1\"
+1000000000000001,TRANSFER,9223372036854775807,9223372036854775807,200,1633036920000,PENDING,\"Record number 2\"
+"
+    );
+    let assert_data = String::from(
+      "# Record 1 (DEPOSIT)
+TX_ID: 1000000000000000
+TX_TYPE: DEPOSIT
+FROM_USER_ID: 0
+TO_USER_ID: 9223372036854775807
+AMOUNT: 100
+TIMESTAMP: 1633036860000
+STATUS: FAILURE
+DESCRIPTION: \"Record number 1\"
+
+# Record 2 (TRANSFER)
+TX_ID: 1000000000000001
+TX_TYPE: TRANSFER
+FROM_USER_ID: 9223372036854775807
+TO_USER_ID: 9223372036854775807
+AMOUNT: 200
+TIMESTAMP: 1633036920000
+STATUS: PENDING
+DESCRIPTION: \"Record number 2\"
+
+",
+    );
+
+    let mut input_buffer: Cursor<String> = Cursor::new(source_data.clone());
+    let mut output_buffer: Vec<u8> = vec![];
+    let input_format = DataFormat::Csv;
     let output_format = DataFormat::Txt;
 
     let result = convert(

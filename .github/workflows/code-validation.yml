@@ -27,22 +27,3 @@ jobs:
       - name: Validate unit tests
         run: |
           cargo test
-# TODO Split unit and e2e tests
-#  build:
-#    name: Build target
-#    needs: code-validation
-#    runs-on: ${{ matrix.os }}
-#    strategy:
-#      matrix:
-#        os: [ ubuntu-latest, windows-latest, macos-latest ]
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#      - name: Setup Cargo
-#        uses: ./.github/actions/setup-cargo
-#      - name: Build target
-#        run: |
-#          cargo build --release
-#      - name: Validate tests
-#        run: |
-#          cargo test

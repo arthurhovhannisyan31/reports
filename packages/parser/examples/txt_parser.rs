@@ -1,5 +1,5 @@
 use parser::errors::ParsingError;
-use parser::parsers::{CsvRecord, TxtRecord, csv::CVS_HEADERS};
+use parser::parsers::{CVS_RECORD_HEADER, CsvRecord, TxtRecord};
 use parser::record::BankRecordParser;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
@@ -9,7 +9,7 @@ fn main() -> Result<(), ParsingError> {
   let mut reader = BufReader::new(f);
   let mut write_buf = BufWriter::new(File::create("./temp/records.csv")?);
 
-  writeln!(&mut write_buf, "{CVS_HEADERS}")?;
+  writeln!(&mut write_buf, "{CVS_RECORD_HEADER}")?;
   while let Ok(record) = TxtRecord::from_read(&mut reader) {
     let _ = CsvRecord(record).write_to(&mut write_buf);
   }

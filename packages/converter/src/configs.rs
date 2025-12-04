@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 #[derive(Debug, ValueEnum, Clone, PartialEq)]
-pub enum DataFormat {
+pub(crate) enum DataFormat {
   Bin,
   Csv,
   Txt,
@@ -17,7 +17,7 @@ pub(crate) const EXTENSION_WHITELIST: &[&str] = &["bin", "csv", "txt"];
 
 #[derive(Debug, Parser)]
 #[command(version, about, next_line_help = true)]
-pub struct CliArgs {
+pub(crate) struct CliArgs {
   #[arg(short = 'i', long, value_name = "File path", value_parser = path_validation)]
   pub input: PathBuf,
   #[arg(long, value_enum, value_name = "File Format")]
@@ -26,7 +26,7 @@ pub struct CliArgs {
   pub output_format: DataFormat,
 }
 
-pub fn path_validation(path: &str) -> Result<PathBuf, ConverterErrors> {
+fn path_validation(path: &str) -> Result<PathBuf, ConverterErrors> {
   let path =
     PathBuf::from_str(path).expect("Failed reading provided path value");
 
