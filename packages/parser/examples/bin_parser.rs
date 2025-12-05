@@ -1,8 +1,9 @@
+use std::fs::File;
+use std::io::{BufReader, BufWriter, Write};
+
 use parser::errors::ParsingError;
 use parser::parsers::BinRecord;
 use parser::record::BankRecordParser;
-use std::fs::File;
-use std::io::{BufReader, BufWriter, Write};
 
 fn main() -> Result<(), ParsingError> {
   let f = File::open("./mocks/records_example.bin")?;
