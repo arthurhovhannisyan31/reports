@@ -3,7 +3,7 @@ use std::io;
 use std::num::ParseIntError;
 use std::string::FromUtf8Error;
 
-#[derive(Debug)]
+#[derive(Debug)] // try using thiserror::Error for fast error creation
 pub enum ParsingError {
   IO(io::Error),
   ParseInt(ParseIntError),

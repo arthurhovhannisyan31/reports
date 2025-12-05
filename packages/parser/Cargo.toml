@@ -6,6 +6,7 @@ description = "Report files parser"
 
 [dependencies]
 
+// nice!!
 [[example]]
 name = "binary"
 path = "examples/bin_parser.rs"
